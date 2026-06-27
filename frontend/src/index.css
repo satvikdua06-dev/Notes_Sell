@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: #131B2E;
+    color: #DDD6CC;
+    font-family: 'Source Sans 3', system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: rgba(181, 101, 29, 0.35);
+    color: #fff;
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: #1C2640; }
+  ::-webkit-scrollbar-thumb { background: rgba(181,101,29,0.4); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(181,101,29,0.65); }
+}
+
+@layer components {
+
+  /* ── Buttons ────────────────────────────────────────────────────────── */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-md
+           font-body font-semibold text-sm text-white
+           bg-accent transition-colors duration-150
+           hover:bg-accent-light
+           active:scale-[0.98]
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-md
+           font-body font-semibold text-sm
+           border border-accent text-accent bg-transparent
+           transition-colors duration-150
+           hover:bg-accent-faint;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-3 py-2 rounded-md
+           font-body font-medium text-sm text-text-muted
+           transition-colors duration-150
+           hover:text-text hover:bg-white/5;
+  }
+
+  /* ── Cards ──────────────────────────────────────────────────────────── */
+
+  /* Standard dark-surface card (used in Feature sections, etc.) */
+  .card {
+    @apply bg-surface border border-white/10 rounded-xl p-5
+           transition-shadow duration-200;
+  }
+
+  /* Cream chapter card — the notebook page */
+  .chapter-card {
+    @apply bg-card border border-card-border rounded-xl
+           border-l-[3px] border-l-accent
+           transition-shadow duration-200
+           hover:shadow-card-hover;
+  }
+
+  /* ── Forms ──────────────────────────────────────────────────────────── */
+  .input {
+    @apply w-full bg-surface border border-white/10 rounded-lg px-4 py-2.5
+           text-text text-sm placeholder-text-faint font-body
+           transition-all duration-150 outline-none
+           focus:border-accent focus:ring-2 focus:ring-accent/20;
+  }
+
+  /* ── Typography helpers ─────────────────────────────────────────────── */
+  .section-title {
+    @apply font-display font-bold text-3xl md:text-4xl text-text;
+  }
+
+  .section-sub {
+    @apply font-body text-text-muted text-lg mt-3 max-w-xl;
+  }
+
+  /* Price — mono, accent color */
+  .price {
+    @apply font-mono font-medium text-accent;
+  }
+
+  /* ── Loading skeleton ───────────────────────────────────────────────── */
+  .shimmer {
+    background: linear-gradient(90deg, #1C2640 0%, #243050 50%, #1C2640 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s linear infinite;
+  }
+}
+
+/* ── Keyframes ──────────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── GSAP will-change hints ─────────────────────────────────────────────── */
+.gsap-target {
+  will-change: transform, opacity;
+}
+
+/* ── Print block for secure viewer ─────────────────────────────────────── */
+@media print {
+  body { display: none !important; }
+}
