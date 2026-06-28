@@ -14,10 +14,11 @@ router.get('/subjects', async (_req: Request, res: Response) => {
   try {
     const result = await db.query<{
       id: string; name: string; slug: string; description: string;
-      bundle_price_inr: number; chapter_count: string;
+      bundle_price_inr: number; chapter_count: string; chapter_sum_inr: number;
     }>(
       `SELECT s.id, s.name, s.slug, s.description, s.bundle_price_inr,
-              COUNT(c.id)::text AS chapter_count
+              COUNT(c.id)::text AS chapter_count,
+              COALESCE(SUM(c.price_inr), 0)::int AS chapter_sum_inr
        FROM subjects s
        LEFT JOIN chapters c ON c.subject_id = s.id
        GROUP BY s.id

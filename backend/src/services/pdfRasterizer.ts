@@ -61,6 +61,7 @@ export async function getPdfPageCount(pdfBuffer: Buffer): Promise<number> {
     data: new Uint8Array(pdfBuffer),
     standardFontDataUrl: fontsPath,
     isEvalSupported: false,
+    disableFontFace: true,
   }).promise;
 
   const count = pdf.numPages;

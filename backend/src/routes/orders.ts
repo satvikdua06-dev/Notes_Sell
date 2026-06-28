@@ -7,37 +7,82 @@ import { fulfillOrder } from '../services/fulfillOrder';
 
 const router = Router();
 
-// POST /api/orders — create order from chapter IDs
+// POST /api/orders — create order from individual chapters, subject bundles, or the mega-bundle.
+// Bundle price comes from subjects.bundle_price_inr, never from summing chapters.
+// Mega-bundle price comes from MEGA_BUNDLE_PRICE_INR env var (all subjects together).
 router.post('/', requireAuth, async (req: Request, res: Response) => {
-  const { chapterIds } = req.body;
-  if (!Array.isArray(chapterIds) || chapterIds.length === 0) {
-    return res.status(400).json({ error: 'chapterIds array required' });
+  const chapterIds: string[] = Array.isArray(req.body.chapterIds) ? req.body.chapterIds : [];
+  const bundleSubjectIds: string[] = Array.isArray(req.body.bundleSubjectIds) ? req.body.bundleSubjectIds : [];
+  const megaBundle: boolean = req.body.megaBundle === true;
+
+  if (!megaBundle && chapterIds.length === 0 && bundleSubjectIds.length === 0) {
+    return res.status(400).json({ error: 'chapterIds, bundleSubjectIds, or megaBundle required' });
   }
 
   const client = await db.getClient();
   try {
     await client.query('BEGIN');
 
-    // Fetch chapter prices from DB — never trust client-submitted amounts
-    const placeholders = chapterIds.map((_, i) => `$${i + 1}`).join(',');
-    const chapResult = await client.query<{ id: string; price_inr: number }>(
-      `SELECT id, price_inr FROM chapters WHERE id IN (${placeholders})`,
-      chapterIds
-    );
+    // Accumulate order items: chapterId → priceAtPurchase.
+    // Bundle chapters record ₹0 so the order total stays correct (bundle price is in totalInr).
+    const itemMap = new Map<string, number>();
+    let totalInr = 0;
 
-    if (chapResult.rows.length !== chapterIds.length) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ error: 'One or more chapter IDs are invalid' });
+    // 1. Individual chapters — price from chapters.price_inr
+    if (chapterIds.length > 0) {
+      const placeholders = chapterIds.map((_, i) => `$${i + 1}`).join(',');
+      const chapResult = await client.query<{ id: string; price_inr: number }>(
+        `SELECT id, price_inr FROM chapters WHERE id IN (${placeholders})`,
+        chapterIds
+      );
+      if (chapResult.rows.length !== chapterIds.length) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'One or more chapter IDs are invalid' });
+      }
+      for (const row of chapResult.rows) {
+        itemMap.set(row.id, row.price_inr);
+        totalInr += row.price_inr;
+      }
     }
 
-    const totalInr = chapResult.rows.reduce((sum, r) => sum + r.price_inr, 0);
+    // 2a. Mega-bundle — all subjects at fixed MEGA_BUNDLE_PRICE_INR
+    if (megaBundle) {
+      const megaPrice = parseInt(process.env.MEGA_BUNDLE_PRICE_INR || '59');
+      totalInr += megaPrice;
+      const allChaps = await client.query<{ id: string }>(
+        'SELECT id FROM chapters'
+      );
+      for (const row of allChaps.rows) {
+        if (!itemMap.has(row.id)) itemMap.set(row.id, 0);
+      }
+    }
+
+    // 2b. Bundle subjects — price from subjects.bundle_price_inr, expand to all chapters
+    for (const subjectId of bundleSubjectIds) {
+      const subjResult = await client.query<{ bundle_price_inr: number }>(
+        'SELECT bundle_price_inr FROM subjects WHERE id = $1',
+        [subjectId]
+      );
+      if (subjResult.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Bundle subject not found' });
+      }
+      totalInr += subjResult.rows[0].bundle_price_inr;
+
+      const chapResult = await client.query<{ id: string }>(
+        'SELECT id FROM chapters WHERE subject_id = $1',
+        [subjectId]
+      );
+      for (const row of chapResult.rows) {
+        // Don't overwrite a chapter already priced individually
+        if (!itemMap.has(row.id)) itemMap.set(row.id, 0);
+      }
+    }
 
     // Create Razorpay order (amount in paise).
-    // payment_capture:1 enables auto-capture on authorization, so any valid
-    // payment signature from our checkout is guaranteed to be a captured payment.
-    // This is what makes the /verify endpoint safe without a separate Payments API fetch.
+    // payment_capture:true enables auto-capture so /verify is safe without a Payments API fetch.
     const rzpOrder = await getRazorpay().orders.create({
-      amount: totalInr * 100, // paise
+      amount: totalInr * 100,
       currency: 'INR',
       receipt: `receipt_${Date.now()}`,
       payment_capture: true,
@@ -52,10 +97,10 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
     const orderId = orderResult.rows[0].id;
 
     // Persist order items
-    for (const chap of chapResult.rows) {
+    for (const [chapId, price] of itemMap) {
       await client.query(
         'INSERT INTO order_items (order_id, chapter_id, price_at_purchase) VALUES ($1, $2, $3)',
-        [orderId, chap.id, chap.price_inr]
+        [orderId, chapId, price]
       );
     }
 
@@ -64,7 +109,7 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
     return res.status(201).json({
       orderId,
       razorpayOrderId: rzpOrder.id,
-      amount: totalInr * 100, // paise (Razorpay expects paise)
+      amount: totalInr * 100,
       currency: 'INR',
       keyId: process.env.RAZORPAY_KEY_ID,
     });
@@ -78,7 +123,6 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
 });
 
 // POST /api/orders/:id/verify — client-side payment verification fallback
-// Called from the Razorpay handler callback when the webhook tunnel is unreliable.
 // Signature formula: HMAC-SHA256(razorpay_order_id + "|" + razorpay_payment_id, KEY_SECRET)
 // Note: different from webhook signature (which HMACs the raw JSON body using WEBHOOK_SECRET).
 router.post('/:id/verify', requireAuth, async (req: Request, res: Response) => {
@@ -104,16 +148,11 @@ router.post('/:id/verify', requireAuth, async (req: Request, res: Response) => {
   }
 
   // Step 2: verify signature using KEY_SECRET, not WEBHOOK_SECRET.
-  // Formula: HMAC-SHA256(razorpay_order_id + "|" + razorpay_payment_id, KEY_SECRET) → hex.
-  // Safe because payment_capture:1 on order creation guarantees this signature
-  // is only produced after the payment is captured, not merely authorized.
   const expected = crypto
     .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '')
     .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-    .digest('hex'); // always 64 hex chars
+    .digest('hex');
 
-  // Explicit length check before timingSafeEqual — it throws on mismatched buffer lengths.
-  // Treat length mismatch as invalid rather than letting it surface as an unhandled exception.
   const sig = String(razorpay_signature);
   if (expected.length !== sig.length) {
     return res.status(400).json({ error: 'Invalid signature' });
@@ -125,7 +164,7 @@ router.post('/:id/verify', requireAuth, async (req: Request, res: Response) => {
 
   if (!valid) return res.status(400).json({ error: 'Invalid signature' });
 
-  // Step 3: fulfill — shared function, idempotent, safe if webhook also fires later
+  // Step 3: fulfill — idempotent, safe if webhook also fires later
   try {
     await fulfillOrder(order.id, razorpay_payment_id);
     return res.json({ status: 'paid' });

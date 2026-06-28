@@ -12,6 +12,7 @@ export interface Subject {
   description: string | null;
   bundle_price_inr: number;
   chapter_count: string;
+  chapter_sum_inr: number;
 }
 
 export interface Chapter {
@@ -25,11 +26,12 @@ export interface Chapter {
 }
 
 export interface CartItem {
-  chapterId: string;
+  chapterId: string;      // chapter UUID for individual items; subject UUID for bundle items
   title: string;
   subjectName: string;
   subjectSlug: string;
   price: number;
+  bundleSubjectId?: string; // set when this item represents a whole-subject bundle
 }
 
 export interface Order {

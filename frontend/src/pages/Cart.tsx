@@ -83,7 +83,14 @@ export default function Cart() {
       const loaded = await loadRazorpayScript();
       if (!loaded) throw new Error('Could not load Razorpay');
 
-      const { data } = await api.post('/orders', { chapterIds: items.map((i) => i.chapterId) });
+      const megaItem = items.find((i) => i.bundleSubjectId === '__mega__');
+      const bundleItems = items.filter((i) => i.bundleSubjectId && i.bundleSubjectId !== '__mega__');
+      const chapterItems = items.filter((i) => !i.bundleSubjectId);
+      const { data } = await api.post('/orders', {
+        chapterIds: chapterItems.map((i) => i.chapterId),
+        bundleSubjectIds: bundleItems.map((i) => i.bundleSubjectId!),
+        megaBundle: !!megaItem,
+      });
       setOrderId(data.orderId);
 
       const rzp = new window.Razorpay({

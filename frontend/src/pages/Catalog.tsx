@@ -1,15 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Search } from 'lucide-react';
 import api from '../api';
 import { Subject, Chapter, Purchase } from '../types';
 import SubjectSection from '../components/SubjectSection';
+import PromoBanner from '../components/PromoBanner';
 import { useAuth } from '../store/auth';
-import { useCart } from '../store/cart';
-
-gsap.registerPlugin(ScrollTrigger);
 
 type ChapterMap = Record<string, Chapter[]>;
 
@@ -19,10 +15,9 @@ export default function Catalog() {
   const [purchases, setPurchases] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState('');
   const headerRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
-  const { add } = useCart();
-  const location = useLocation();
 
   useEffect(() => {
     gsap.fromTo(headerRef.current,
@@ -35,6 +30,7 @@ export default function Catalog() {
         const { data } = await api.get('/subjects');
         const subs: Subject[] = data.subjects;
         setSubjects(subs);
+        if (subs.length) setActiveTab(subs[0].slug);
 
         const chapMap: ChapterMap = {};
         await Promise.all(
@@ -59,27 +55,13 @@ export default function Catalog() {
     load();
   }, [user]);
 
-  useEffect(() => {
-    if (location.hash) {
-      const el = document.querySelector(location.hash);
-      if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400);
-    }
-  }, [location.hash, loading]);
+  const MEGA_BUNDLE_PRICE = 59;
 
-  const addAll = () => {
-    subjects.forEach((s) => {
-      (chapters[s.slug] || []).forEach((c) => {
-        if (!purchases.has(c.id)) {
-          add({ chapterId: c.id, title: c.title, subjectName: s.name, subjectSlug: s.slug, price: c.price_inr });
-        }
-      });
-    });
-  };
-
-  const filtered = (slug: string) => {
+  const activeSubject = subjects.find((s) => s.slug === activeTab);
+  const filteredChapters = (() => {
     const q = search.toLowerCase();
-    return (chapters[slug] || []).filter((c) => !q || c.title.toLowerCase().includes(q));
-  };
+    return (chapters[activeTab] || []).filter((c) => !q || c.title.toLowerCase().includes(q));
+  })();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-20">
@@ -93,54 +75,66 @@ export default function Catalog() {
         </p>
       </div>
 
-      {/* All-subjects banner */}
-      <div className="mb-10 rounded-xl border border-accent/30 bg-accent-faint px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <p className="text-text-faint text-xs font-body uppercase tracking-widest mb-1">Best value</p>
-          <h2 className="font-display font-bold text-xl text-text">All subjects · 35 notes</h2>
-          <p className="text-text-muted text-sm font-body mt-0.5">
-            Biology (17) + Chemistry (5) + Physics (13)
-          </p>
-        </div>
-        <button onClick={addAll} className="btn-primary shrink-0">
-          Add everything — ₹59
-        </button>
-      </div>
-
-      {/* Search */}
-      <div className="relative mb-10 max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-faint" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search chapters..."
-          className="input pl-10"
+      {/* Bundle deals row */}
+      {!loading && subjects.length > 0 && (
+        <PromoBanner
+          subjects={subjects}
+          chapters={chapters}
+          purchases={purchases}
+          megaBundlePrice={MEGA_BUNDLE_PRICE}
         />
+      )}
+
+      {/* Tabs + Search row */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
+        {/* Tab bar */}
+        <div className="flex gap-1 p-1 rounded-xl bg-surface border border-white/5">
+          {subjects.map((s) => (
+            <button
+              key={s.slug}
+              onClick={() => { setActiveTab(s.slug); setSearch(''); }}
+              className={`relative px-5 py-2 rounded-lg text-sm font-body font-medium transition-colors duration-150 ${
+                activeTab === s.slug
+                  ? 'bg-accent text-white shadow-sm'
+                  : 'text-text-muted hover:text-text'
+              }`}
+            >
+              {s.name}
+              {activeTab === s.slug && activeSubject && (
+                <span className="ml-1.5 text-xs opacity-70">{chapters[s.slug]?.length ?? 0}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Search */}
+        <div className="relative sm:ml-auto max-w-xs w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-faint" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={`Search ${activeSubject?.name ?? ''} chapters…`}
+            className="input pl-10 w-full"
+          />
+        </div>
       </div>
 
+      {/* Content */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className={`h-36 rounded-xl shimmer ${i === 0 ? 'sm:col-span-2' : ''}`} />
           ))}
         </div>
-      ) : (
-        <div className="space-y-14">
-          {subjects.map((s) => {
-            const chaps = filtered(s.slug);
-            if (!chaps.length && search) return null;
-            return (
-              <SubjectSection
-                key={s.id}
-                subject={s}
-                chapters={chaps}
-                purchasedIds={purchases}
-              />
-            );
-          })}
-        </div>
-      )}
+      ) : activeSubject ? (
+        <SubjectSection
+          key={activeTab}
+          subject={activeSubject}
+          chapters={filteredChapters}
+          purchasedIds={purchases}
+        />
+      ) : null}
     </div>
   );
 }
