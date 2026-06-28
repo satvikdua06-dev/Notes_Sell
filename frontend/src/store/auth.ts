@@ -15,7 +15,12 @@ export const useAuth = create<AuthStore>((set) => ({
   loading: true,
   setUser: (user) => set({ user }),
   logout: async () => {
-    await api.post('/auth/logout');
+    try {
+      await api.post('/auth/logout');
+    } catch (err) {
+      console.error('Logout request failed:', err);
+    }
+    localStorage.removeItem('session_token');
     set({ user: null });
   },
   fetchMe: async () => {
@@ -23,6 +28,7 @@ export const useAuth = create<AuthStore>((set) => ({
       const { data } = await api.get('/auth/me');
       set({ user: data.user, loading: false });
     } catch {
+      localStorage.removeItem('session_token');
       set({ user: null, loading: false });
     }
   },

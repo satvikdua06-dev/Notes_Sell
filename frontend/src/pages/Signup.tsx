@@ -29,6 +29,9 @@ export default function Signup() {
     setLoading(true);
     try {
       const { data } = await api.post('/auth/signup', { name, email, password });
+      if (data.token) {
+        localStorage.setItem('session_token', data.token);
+      }
       setUser(data.user);
       navigate('/catalog');
     } catch (err: unknown) {

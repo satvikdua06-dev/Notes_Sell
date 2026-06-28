@@ -28,6 +28,9 @@ export default function Login() {
     setLoading(true);
     try {
       const { data } = await api.post('/auth/login', { email, password });
+      if (data.token) {
+        localStorage.setItem('session_token', data.token);
+      }
       setUser(data.user);
       navigate('/catalog');
     } catch (err: unknown) {
