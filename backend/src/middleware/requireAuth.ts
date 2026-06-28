@@ -3,7 +3,14 @@ import jwt from 'jsonwebtoken';
 import { JwtPayload } from '../types';
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
-  const token = req.cookies?.session_token;
+  let token = req.cookies?.session_token;
+
+  // Also check Authorization header (e.g. Bearer <token>)
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  }
+
   if (!token) {
     return res.status(401).json({ error: 'Not logged in' });
   }
