@@ -7,10 +7,15 @@ import { JwtPayload } from '../types';
 
 const router = Router();
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const COOKIE_OPTS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
+  secure: isProd,
+  // SameSite=None is required for cross-origin requests (Vercel frontend → Render backend).
+  // SameSite=None mandates Secure=true, which is set above in production.
+  // In local dev (http) we use 'lax' because browsers reject None without Secure.
+  sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
@@ -72,7 +77,7 @@ router.post('/login', async (req: Request, res: Response) => {
 });
 
 router.post('/logout', (_req: Request, res: Response) => {
-  res.clearCookie('session_token');
+  res.clearCookie('session_token', { ...COOKIE_OPTS, maxAge: undefined });
   return res.json({ ok: true });
 });
 
