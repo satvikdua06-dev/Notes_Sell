@@ -4,6 +4,7 @@ import { useAuth } from './store/auth';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
+import ErrorBoundary from './components/ErrorBoundary';
 import Home from './pages/Home';
 import Catalog from './pages/Catalog';
 import Cart from './pages/Cart';
@@ -44,7 +45,7 @@ export default function App() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/catalog" element={<Catalog />} />
+          <Route path="/catalog" element={<ErrorBoundary><Catalog /></ErrorBoundary>} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />

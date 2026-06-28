@@ -14,6 +14,7 @@ export default function Catalog() {
   const [chapters, setChapters] = useState<ChapterMap>({});
   const [purchases, setPurchases] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('');
   const headerRef = useRef<HTMLDivElement>(null);
@@ -28,7 +29,7 @@ export default function Catalog() {
     async function load() {
       try {
         const { data } = await api.get('/subjects');
-        const subs: Subject[] = data.subjects;
+        const subs: Subject[] = data.subjects ?? [];
         setSubjects(subs);
         if (subs.length) setActiveTab(subs[0].slug);
 
@@ -36,18 +37,21 @@ export default function Catalog() {
         await Promise.all(
           subs.map(async (s) => {
             const r = await api.get(`/subjects/${s.slug}/chapters`);
-            chapMap[s.slug] = r.data.chapters;
+            chapMap[s.slug] = r.data.chapters ?? [];
           })
         );
         setChapters(chapMap);
 
         if (user) {
           const lib = await api.get('/library');
-          const ids = new Set<string>(lib.data.purchases.map((p: Purchase) => p.chapter_id));
+          const ids = new Set<string>(
+            (lib.data.purchases ?? []).map((p: Purchase) => p.chapter_id)
+          );
           setPurchases(ids);
         }
       } catch (err) {
-        console.error(err);
+        console.error('Catalog load failed:', err);
+        setError('Could not load notes. Check your connection and refresh.');
       } finally {
         setLoading(false);
       }
@@ -56,6 +60,17 @@ export default function Catalog() {
   }, [user]);
 
   const MEGA_BUNDLE_PRICE = 59;
+
+  if (!loading && error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-20 flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <p className="text-text-muted text-lg mb-6">{error}</p>
+        <button onClick={() => window.location.reload()} className="btn-primary">
+          Refresh page
+        </button>
+      </div>
+    );
+  }
 
   const activeSubject = subjects.find((s) => s.slug === activeTab);
   const filteredChapters = (() => {
