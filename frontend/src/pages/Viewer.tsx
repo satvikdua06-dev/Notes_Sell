@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ArrowLeft, Loader2 } from 'lucide-react';
-import api from '../api';
+import api, { apiUrl } from '../api';
 
 interface ViewerSession {
   token: string;
@@ -112,7 +112,7 @@ export default function Viewer() {
     setImgSrc('');
 
     // Use token from ref (always current after refresh)
-    const url = `/api/chapters/${chapterId}/page/${page}?token=${encodeURIComponent(tokenRef.current)}`;
+    const url = apiUrl(`/chapters/${chapterId}/page/${page}?token=${encodeURIComponent(tokenRef.current)}`);
     const img = new Image();
     img.onload = () => {
       setImgSrc(url);
