@@ -5,7 +5,7 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { db, closePool } from './index';
-import { minioClient, BUCKET_NAME } from '../services/minio';
+import { ensureBucket, putObject, BUCKET_NAME } from '../services/minio';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 
@@ -112,11 +112,7 @@ async function generatePlaceholderPdf(title: string, pages = 3): Promise<Buffer>
 async function seed() {
   console.log('Seeding database...');
 
-  const bucketExists = await minioClient.bucketExists(BUCKET_NAME);
-  if (!bucketExists) {
-    await minioClient.makeBucket(BUCKET_NAME, 'us-east-1');
-    console.log(`Created bucket: ${BUCKET_NAME}`);
-  }
+  await ensureBucket();
 
   const client = await db.getClient();
   try {
@@ -136,7 +132,7 @@ async function seed() {
         const fileKey = `chapters/${subject.slug}/${uuidv4()}.pdf`;
 
         const pdfBuffer = await generatePlaceholderPdf(title, 3 + Math.floor(Math.random() * 4));
-        await minioClient.putObject(BUCKET_NAME, fileKey, pdfBuffer, pdfBuffer.length, { 'Content-Type': 'application/pdf' });
+        await putObject(fileKey, pdfBuffer, 'application/pdf');
 
         await client.query(
           `INSERT INTO chapters (subject_id, title, price_inr, source_file_key, page_count, sort_order)

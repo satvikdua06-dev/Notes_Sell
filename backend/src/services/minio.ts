@@ -1,33 +1,58 @@
-import { Client } from 'minio';
+import {
+  S3Client,
+  GetObjectCommand,
+  PutObjectCommand,
+  HeadBucketCommand,
+  CreateBucketCommand,
+} from '@aws-sdk/client-s3';
 
-export const BUCKET_NAME = process.env.MINIO_BUCKET || 'notes-chapters';
+export const BUCKET_NAME = process.env.S3_BUCKET || 'notes-chapters';
 
-export const minioClient = new Client({
-  endPoint: process.env.MINIO_ENDPOINT || 'localhost',
-  port: parseInt(process.env.MINIO_PORT || '9000'),
-  useSSL: process.env.MINIO_USE_SSL === 'true',
-  accessKey: process.env.MINIO_ROOT_USER || 'minioadmin',
-  secretKey: process.env.MINIO_ROOT_PASSWORD || 'minioadmin',
+const s3 = new S3Client({
+  endpoint: process.env.S3_ENDPOINT || 'http://localhost:9000',
+  region: process.env.S3_REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.S3_ACCESS_KEY || 'minioadmin',
+    secretAccessKey: process.env.S3_SECRET_KEY || 'minioadmin',
+  },
+  forcePathStyle: true,
 });
 
-export async function ensureBucket() {
-  const exists = await minioClient.bucketExists(BUCKET_NAME);
-  if (!exists) {
-    await minioClient.makeBucket(BUCKET_NAME, 'us-east-1');
-    console.log(`Created MinIO bucket: ${BUCKET_NAME}`);
+export async function ensureBucket(): Promise<void> {
+  try {
+    await s3.send(new HeadBucketCommand({ Bucket: BUCKET_NAME }));
+  } catch (err: unknown) {
+    const e = err as { name?: string; $metadata?: { httpStatusCode?: number } };
+    if (e.$metadata?.httpStatusCode === 404 || e.name === 'NotFound' || e.name === 'NoSuchBucket') {
+      await s3.send(new CreateBucketCommand({ Bucket: BUCKET_NAME }));
+      console.log(`Created bucket: ${BUCKET_NAME}`);
+    } else {
+      throw err;
+    }
   }
 }
 
 export async function getObjectBuffer(key: string): Promise<Buffer> {
-  const stream = await minioClient.getObject(BUCKET_NAME, key);
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    stream.on('data', (chunk: Buffer) => chunks.push(chunk));
-    stream.on('end', () => resolve(Buffer.concat(chunks)));
-    stream.on('error', reject);
-  });
+  const { Body } = await s3.send(new GetObjectCommand({ Bucket: BUCKET_NAME, Key: key }));
+  if (!Body) throw new Error(`Object not found: ${key}`);
+  const chunks: Buffer[] = [];
+  for await (const chunk of Body as AsyncIterable<Uint8Array>) {
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
 }
 
-export async function putObject(key: string, buffer: Buffer, contentType = 'application/octet-stream') {
-  await minioClient.putObject(BUCKET_NAME, key, buffer, buffer.length, { 'Content-Type': contentType });
+export async function putObject(
+  key: string,
+  buffer: Buffer,
+  contentType = 'application/octet-stream',
+): Promise<void> {
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+    }),
+  );
 }
