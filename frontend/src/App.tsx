@@ -19,6 +19,15 @@ import Delivery from './pages/policies/Delivery';
 import Contact from './pages/policies/Contact';
 import Cancellation from './pages/policies/Cancellation';
 
+import AdminLayout from './pages/admin/AdminLayout';
+import Dashboard from './pages/admin/Dashboard';
+import Authors from './pages/admin/Authors';
+import Subjects from './pages/admin/Subjects';
+import Chapters from './pages/admin/Chapters';
+import Bundles from './pages/admin/Bundles';
+import Orders from './pages/admin/Orders';
+import AdminUsers from './pages/admin/AdminUsers';
+
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Spinner /></div>;
@@ -60,6 +69,17 @@ export default function App() {
           {/* Auth-gated */}
           <Route path="/library" element={<RequireAuth><Library /></RequireAuth>} />
           <Route path="/viewer/:chapterId" element={<RequireAuth><Viewer /></RequireAuth>} />
+
+          {/* Admin — role guard is inside AdminLayout */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="authors"  element={<Authors />} />
+            <Route path="subjects" element={<Subjects />} />
+            <Route path="chapters" element={<Chapters />} />
+            <Route path="bundles"  element={<Bundles />} />
+            <Route path="orders"   element={<Orders />} />
+            <Route path="users"    element={<AdminUsers />} />
+          </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

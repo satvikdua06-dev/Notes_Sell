@@ -17,10 +17,11 @@ router.get('/subjects', async (_req: Request, res: Response) => {
       bundle_price_inr: number; chapter_count: string; chapter_sum_inr: number;
     }>(
       `SELECT s.id, s.name, s.slug, s.description, s.bundle_price_inr,
-              COUNT(c.id)::text AS chapter_count,
-              COALESCE(SUM(c.price_inr), 0)::int AS chapter_sum_inr
+              COUNT(c.id) FILTER (WHERE c.is_active = true)::text AS chapter_count,
+              COALESCE(SUM(c.price_inr) FILTER (WHERE c.is_active = true), 0)::int AS chapter_sum_inr
        FROM subjects s
        LEFT JOIN chapters c ON c.subject_id = s.id
+       WHERE s.is_active = true
        GROUP BY s.id
        ORDER BY s.sort_order, s.name`
     );
@@ -40,7 +41,7 @@ router.get('/subjects/:slug/chapters', async (req: Request, res: Response) => {
       `SELECT c.id, c.title, c.price_inr, c.page_count, c.sort_order
        FROM chapters c
        JOIN subjects s ON s.id = c.subject_id
-       WHERE s.slug = $1
+       WHERE s.slug = $1 AND c.is_active = true
        ORDER BY c.sort_order, c.title`,
       [req.params.slug]
     );

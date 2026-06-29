@@ -16,6 +16,7 @@ import ordersRouter from './routes/orders';
 import webhooksRouter from './routes/webhooks';
 import viewerRouter from './routes/viewer';
 import libraryRouter from './routes/library';
+import adminRouter from './routes/admin';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -39,6 +40,7 @@ app.use('/api', catalogRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/chapters', viewerRouter);
 app.use('/api/library', libraryRouter);
+app.use('/api/admin', adminRouter);
 
 // Health — actively pings Redis and Postgres so a single external cron hit
 // keeps all three free-tier services (Render web, Render Redis, Supabase) from sleeping.

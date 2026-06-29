@@ -50,7 +50,7 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       const megaPrice = parseInt(process.env.MEGA_BUNDLE_PRICE_INR || '59');
       totalInr += megaPrice;
       const allChaps = await client.query<{ id: string }>(
-        'SELECT id FROM chapters'
+        'SELECT id FROM chapters WHERE is_active = true'
       );
       for (const row of allChaps.rows) {
         if (!itemMap.has(row.id)) itemMap.set(row.id, 0);
@@ -70,7 +70,7 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       totalInr += subjResult.rows[0].bundle_price_inr;
 
       const chapResult = await client.query<{ id: string }>(
-        'SELECT id FROM chapters WHERE subject_id = $1',
+        'SELECT id FROM chapters WHERE subject_id = $1 AND is_active = true',
         [subjectId]
       );
       for (const row of chapResult.rows) {
