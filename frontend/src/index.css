@@ -130,3 +130,90 @@
 @media print {
   body { display: none !important; }
 }
+
+/* ── Policy pages ──────────────────────────────────────────────────────── */
+.policy-content h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  color: #DDD6CC;
+  font-size: 1.25rem;
+  line-height: 1.4;
+  margin-top: 2.75rem;
+  margin-bottom: 0.875rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+.policy-content h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+.policy-content p {
+  color: #8A95B5;
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+.policy-content p.lead {
+  color: #B0B9CC;
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.policy-content ul {
+  margin: 0.75rem 0 1.25rem;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.policy-content ul > li {
+  color: #8A95B5;
+  line-height: 1.75;
+  padding-left: 1.375rem;
+  position: relative;
+}
+.policy-content ul > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(181, 101, 29, 0.6);
+}
+.policy-content ol {
+  margin: 0.75rem 0 1.25rem;
+  padding-left: 1.625rem;
+  list-style: decimal;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.policy-content ol > li {
+  color: #8A95B5;
+  line-height: 1.75;
+}
+.policy-content ol > li::marker {
+  color: #B5651D;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+.policy-content a {
+  color: #B5651D;
+  text-decoration: none;
+  transition: color 0.15s;
+  text-underline-offset: 3px;
+}
+.policy-content a:hover {
+  color: #C9773A;
+  text-decoration: underline;
+}
+.policy-content strong {
+  color: #C9773A;
+  font-weight: 600;
+}
