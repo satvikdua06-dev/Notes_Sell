@@ -1,4 +1,4 @@
-# StudyNotes — Chapter-wise Notes Marketplace
+# Notarium — Chapter-wise Notes Marketplace
 
 ## Quick Start
 
@@ -47,8 +47,8 @@ npm run dev         # Start frontend on http://localhost:5173
 
 | Role     | Email                       | Password   |
 |----------|-----------------------------|------------|
-| Admin    | admin@studynotes.in         | admin123   |
-| Reviewer | reviewer@studynotes.in      | review123  |
+| Admin    | admin@notarium.in         | admin123   |
+| Reviewer | reviewer@notarium.in      | review123  |
 
 *(Reviewer account is for Razorpay's review team — share these credentials when submitting for live-mode activation)*
 

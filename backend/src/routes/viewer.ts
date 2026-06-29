@@ -40,8 +40,13 @@ router.get('/:chapterId/viewer-session', requireAuth, requirePurchase, async (re
       { expiresIn: `${ttl}s` }
     );
 
-    // Store token in Redis so we can invalidate it server-side if needed
-    await redis.setex(`viewer:${req.user!.id}:${chapterId}`, ttl, token);
+    // Store token in Redis for server-side revocation. Non-fatal if Redis is down —
+    // the JWT's own expiry is the security backstop.
+    try {
+      await redis.setex(`viewer:${req.user!.id}:${chapterId}`, ttl, token);
+    } catch (redisErr) {
+      console.warn('[viewer] Redis unavailable, token not cached (JWT still valid):', (redisErr as Error).message);
+    }
 
     return res.json({ token, pageCount: chap.rows[0].page_count, expiresIn: ttl });
   } catch (err) {
@@ -72,10 +77,17 @@ router.get('/:chapterId/page/:pageNum', pageRateLimit, async (req: Request, res:
     return res.status(403).json({ error: 'Token chapter mismatch' });
   }
 
-  // Verify token is still in Redis (allows server-side revocation)
-  const stored = await redis.get(`viewer:${payload.userId}:${chapterId}`);
-  if (!stored || stored !== token) {
-    return res.status(401).json({ error: 'Session expired or revoked' });
+  // Verify token is still in Redis (allows server-side revocation).
+  // If Redis is unreachable, the JWT's own cryptographic expiry is the fallback.
+  try {
+    const stored = await redis.get(`viewer:${payload.userId}:${chapterId}`);
+    // Only reject if Redis responded AND the stored token doesn't match.
+    // stored === null means the key expired naturally — also reject (re-open a viewer session).
+    if (stored !== token) {
+      return res.status(401).json({ error: 'Session expired or revoked' });
+    }
+  } catch (redisErr) {
+    console.warn('[viewer] Redis unavailable for session check, trusting JWT signature:', (redisErr as Error).message);
   }
 
   const page = parseInt(pageNum);
@@ -87,8 +99,13 @@ router.get('/:chapterId/page/:pageNum', pageRateLimit, async (req: Request, res:
   const cacheKey = `page:${payload.userId}:${chapterId}:${page}`;
 
   try {
-    // Check Redis cache (TTL: 24h)
-    const cached = await redis.getBuffer(cacheKey);
+    // Check Redis cache (TTL: 24h). Fall through to re-render if Redis is unavailable.
+    let cached: Buffer | null = null;
+    try {
+      cached = await redis.getBuffer(cacheKey);
+    } catch (redisErr) {
+      console.warn('[viewer] Redis unavailable for cache lookup, re-rendering page:', (redisErr as Error).message);
+    }
     if (cached) {
       res.setHeader('Content-Type', 'image/jpeg');
       res.setHeader('Cache-Control', 'private, max-age=3600');
@@ -122,8 +139,12 @@ router.get('/:chapterId/page/:pageNum', pageRateLimit, async (req: Request, res:
       timestamp: new Date().toISOString().slice(0, 16),
     });
 
-    // Cache for 24 hours (per-user; refresh daily via TTL)
-    await redis.setex(cacheKey, 86400, watermarked);
+    // Cache for 24 hours (per-user; refresh daily via TTL). Non-fatal if Redis is down.
+    try {
+      await redis.setex(cacheKey, 86400, watermarked);
+    } catch (redisErr) {
+      console.warn('[viewer] Redis unavailable, page not cached:', (redisErr as Error).message);
+    }
 
     res.setHeader('Content-Type', 'image/jpeg');
     res.setHeader('Cache-Control', 'private, max-age=3600');

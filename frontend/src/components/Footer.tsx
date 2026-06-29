@@ -13,7 +13,7 @@ export default function Footer() {
                 <Zap className="w-4 h-4 text-white" strokeWidth={2.5} />
               </div>
               <span className="font-display font-bold text-lg">
-                Study<span className="text-violet-light">Notes</span>
+                Nota<span className="text-violet-light">rium</span>
               </span>
             </Link>
             <p className="text-text-muted text-sm leading-relaxed max-w-xs">
@@ -21,7 +21,7 @@ export default function Footer() {
               Buy only what you need, study without distraction.
             </p>
             <div className="flex items-center gap-3 mt-4">
-              <a href="mailto:support@studynotes.in" className="text-text-faint hover:text-violet-light transition-colors" aria-label="Email">
+              <a href="mailto:support@notarium.in" className="text-text-faint hover:text-violet-light transition-colors" aria-label="Email">
                 <Mail className="w-4 h-4" />
               </a>
             </div>
@@ -70,7 +70,7 @@ export default function Footer() {
 
         <div className="border-t border-violet/10 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-text-faint text-xs">
-            © {new Date().getFullYear()} StudyNotes. All rights reserved.
+            © {new Date().getFullYear()} Notarium. All rights reserved.
           </p>
           <p className="text-text-faint text-xs">
             Payments secured by <span className="text-text-muted">Razorpay</span>

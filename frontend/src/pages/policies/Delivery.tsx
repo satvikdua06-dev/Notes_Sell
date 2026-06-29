@@ -2,9 +2,9 @@ import PolicyLayout from './PolicyLayout';
 
 export default function Delivery() {
   return (
-    <PolicyLayout title="Delivery Policy" updated="28 June 2026">
+    <PolicyLayout title="Delivery Policy" updated="29 June 2026">
       <p className="lead">
-        StudyNotes sells digital notes. There is no physical product and no physical shipping.
+        Notarium sells digital notes. There is no physical product and no physical shipping.
         This page explains how your purchase is delivered.
       </p>
 
@@ -31,7 +31,7 @@ export default function Delivery() {
 
       <h2>Access from multiple devices</h2>
       <p>
-        You can read your purchased notes on any device by logging in to your StudyNotes account.
+        You can read your purchased notes on any device by logging in to your Notarium account.
         There is no limit on how many times you can access notes you have paid for.
       </p>
 
@@ -39,7 +39,7 @@ export default function Delivery() {
       <p>
         In the rare event that your payment is confirmed by Razorpay but your library does not update
         within 10 minutes, please contact us at{' '}
-        <a href="mailto:support@studynotes.in">support@studynotes.in</a> with your Razorpay payment ID.
+        <a href="mailto:support@notarium.in">support@notarium.in</a> with your Razorpay payment ID.
         We will resolve it manually within 24 hours.
       </p>
 

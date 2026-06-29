@@ -6,6 +6,7 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') }); // fallback
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import { db } from './db';
 import { ensureBucket } from './services/minio';
 import { redis } from './services/redis';
 
@@ -39,12 +40,31 @@ app.use('/api/orders', ordersRouter);
 app.use('/api/chapters', viewerRouter);
 app.use('/api/library', libraryRouter);
 
-// Health
-app.get('/health', (_req, res) => res.json({ ok: true, ts: new Date().toISOString() }));
+// Health — actively pings Redis and Postgres so a single external cron hit
+// keeps all three free-tier services (Render web, Render Redis, Supabase) from sleeping.
+app.get('/health', async (_req, res) => {
+  try {
+    await redis.ping();
+    await db.query('SELECT 1');
+    res.json({ ok: true, ts: new Date().toISOString() });
+  } catch (err) {
+    console.error('[health] Check failed:', err);
+    res.status(500).json({ ok: false, error: (err as Error).message });
+  }
+});
 
 async function start() {
-  await redis.connect();
+  // Redis is optional for startup — rate limiting and token caching degrade
+  // gracefully if it's unreachable. ioredis retries in the background.
+  try {
+    await redis.connect();
+  } catch (err) {
+    console.warn('[redis] Could not connect on startup — server will start anyway and retry in background:', (err as Error).message);
+  }
+
+  // S3 bucket is a hard dependency — fail fast if misconfigured.
   await ensureBucket();
+
   app.listen(PORT, () => {
     console.log(`Backend running on http://localhost:${PORT}`);
   });

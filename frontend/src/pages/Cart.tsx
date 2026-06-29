@@ -98,7 +98,7 @@ export default function Cart() {
         amount: data.amount,
         currency: data.currency,
         order_id: data.razorpayOrderId,
-        name: 'StudyNotes',
+        name: 'Notarium',
         description: `${items.length} chapter note${items.length > 1 ? 's' : ''}`,
         image: '/favicon.svg',
         prefill: { email: user.email, name: user.name },

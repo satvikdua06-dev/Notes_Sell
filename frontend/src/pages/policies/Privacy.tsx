@@ -2,9 +2,9 @@ import PolicyLayout from './PolicyLayout';
 
 export default function Privacy() {
   return (
-    <PolicyLayout title="Privacy Policy" updated="28 June 2026">
+    <PolicyLayout title="Privacy Policy" updated="29 June 2026">
       <h2>1. Information We Collect</h2>
-      <p>When you use StudyNotes, we collect:</p>
+      <p>When you use Notarium, we collect:</p>
       <ul>
         <li><strong>Account information:</strong> your name and email address when you register.</li>
         <li><strong>Payment information:</strong> payment is processed by Razorpay. We only store the order ID and payment confirmation status — never raw card or bank details.</li>
@@ -34,7 +34,7 @@ export default function Privacy() {
       <ul>
         <li>With <strong>Razorpay</strong> to process payments (subject to Razorpay's privacy policy)</li>
         <li>When required by law or a valid legal process</li>
-        <li>To protect the rights or safety of StudyNotes or its users</li>
+        <li>To protect the rights or safety of Notarium or its users</li>
       </ul>
 
       <h2>5. Cookies and Sessions</h2>
@@ -62,12 +62,12 @@ export default function Privacy() {
       <p>
         Under applicable Indian data protection law, you have the right to access, correct, or request
         deletion of your personal data. To exercise these rights, contact us at{' '}
-        <a href="mailto:support@studynotes.in">support@studynotes.in</a>.
+        <a href="mailto:support@notarium.in">support@notarium.in</a>.
       </p>
 
       <h2>9. Contact</h2>
       <p>
-        Privacy questions: <a href="mailto:support@studynotes.in">support@studynotes.in</a>
+        Privacy questions: <a href="mailto:support@notarium.in">support@notarium.in</a>
       </p>
     </PolicyLayout>
   );

@@ -17,7 +17,13 @@ export async function pageRateLimit(req: Request, res: Response, next: NextFunct
   try {
     await pageFetchLimiter.consume(key);
     next();
-  } catch {
+  } catch (err) {
+    // rate-limiter-flexible throws a RateLimiterRes (not an Error) on limit exceeded.
+    // Actual Error instances mean Redis is unreachable — fail open rather than blocking users.
+    if (err instanceof Error) {
+      console.warn('[rateLimiter] Redis unavailable, skipping rate limit:', err.message);
+      return next();
+    }
     res.status(429).json({ error: 'Too many requests. Slow down.' });
   }
 }

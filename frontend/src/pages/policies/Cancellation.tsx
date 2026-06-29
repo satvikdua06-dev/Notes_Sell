@@ -2,9 +2,9 @@ import PolicyLayout from './PolicyLayout';
 
 export default function Cancellation() {
   return (
-    <PolicyLayout title="Cancellation and Refunds" updated="28 June 2026">
+    <PolicyLayout title="Cancellation and Refunds" updated="29 June 2026">
       <p className="lead">
-        Because StudyNotes sells digital content that is immediately accessible after purchase,
+        Because Notarium sells digital content that is immediately accessible after purchase,
         our refund policy reflects the nature of digital goods.
       </p>
 
@@ -43,7 +43,7 @@ export default function Cancellation() {
 
       <h2>How to request a refund</h2>
       <ol>
-        <li>Email us at <a href="mailto:support@studynotes.in">support@studynotes.in</a></li>
+        <li>Email us at <a href="mailto:support@notarium.in">support@notarium.in</a></li>
         <li>Include your registered email address and your Razorpay payment ID (found in your payment confirmation email)</li>
         <li>Describe the reason for your refund request</li>
       </ol>
@@ -60,7 +60,7 @@ export default function Cancellation() {
 
       <h2>Contact</h2>
       <p>
-        Refund requests: <a href="mailto:support@studynotes.in">support@studynotes.in</a>
+        Refund requests: <a href="mailto:support@notarium.in">support@notarium.in</a>
       </p>
     </PolicyLayout>
   );

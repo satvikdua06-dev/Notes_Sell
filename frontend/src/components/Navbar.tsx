@@ -44,7 +44,7 @@ export default function Navbar() {
         <Link to="/" className="flex items-center gap-2.5 group">
           <NotesLogo />
           <span className="font-display font-bold text-[17px] tracking-tight text-text group-hover:text-white transition-colors">
-            StudyNotes
+            Notarium
           </span>
         </Link>
 

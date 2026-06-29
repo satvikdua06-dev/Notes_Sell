@@ -12,19 +12,19 @@ export default function Contact() {
     e.preventDefault();
     // Opens default mail client with pre-filled content
     const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\n${message}`);
-    window.location.href = `mailto:support@studynotes.in?subject=StudyNotes Support&body=${body}`;
+    window.location.href = `mailto:support@notarium.in?subject=Notarium Support&body=${body}`;
     setSent(true);
   };
 
   return (
-    <PolicyLayout title="Contact Us" updated="28 June 2026">
+    <PolicyLayout title="Contact Us" updated="29 June 2026">
       <p>
         Have a question, a payment issue, or feedback? We're happy to help.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 not-prose my-6">
         {[
-          { icon: <Mail className="w-5 h-5 text-violet-light" />, label: 'Email', value: 'support@studynotes.in', href: 'mailto:support@studynotes.in' },
+          { icon: <Mail className="w-5 h-5 text-violet-light" />, label: 'Email', value: 'support@notarium.in', href: 'mailto:support@notarium.in' },
           { icon: <Clock className="w-5 h-5 text-amber" />, label: 'Response time', value: 'Within 24 hours', href: null },
         ].map((c, i) => (
           <div key={i} className="card p-4 flex items-start gap-3">
@@ -47,7 +47,7 @@ export default function Contact() {
       {sent ? (
         <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-5 text-emerald-400 text-sm">
           Your mail client should have opened. If not, email us directly at{' '}
-          <a href="mailto:support@studynotes.in" className="underline">support@studynotes.in</a>.
+          <a href="mailto:support@notarium.in" className="underline">support@notarium.in</a>.
         </div>
       ) : (
         <form onSubmit={submit} className="space-y-4 not-prose">

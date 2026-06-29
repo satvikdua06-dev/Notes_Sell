@@ -2,16 +2,16 @@ import PolicyLayout from './PolicyLayout';
 
 export default function Terms() {
   return (
-    <PolicyLayout title="Terms and Conditions" updated="28 June 2026">
+    <PolicyLayout title="Terms and Conditions" updated="29 June 2026">
       <h2>1. Acceptance of Terms</h2>
       <p>
-        By creating an account or making a purchase on StudyNotes ("we", "us", "our"), you agree to
+        By creating an account or making a purchase on Notarium ("we", "us", "our"), you agree to
         be bound by these Terms and Conditions. If you do not agree, please do not use the service.
       </p>
 
       <h2>2. Description of Service</h2>
       <p>
-        StudyNotes is a digital content marketplace that sells chapter-wise study notes in PDF format
+        Notarium is a digital content marketplace that sells chapter-wise study notes in PDF format
         for Biology, Chemistry, and Physics. After a verified payment, customers receive access to
         purchased notes through a secure in-browser viewer. No physical goods are shipped.
       </p>
@@ -37,7 +37,7 @@ export default function Terms() {
 
       <h2>6. Intellectual Property</h2>
       <p>
-        All notes, content, and materials on this site are the intellectual property of StudyNotes or
+        All notes, content, and materials on this site are the intellectual property of Notarium or
         their respective creators. Purchasing access does not transfer any copyright. You may not
         reproduce, redistribute, share, sell, or commercially exploit the notes in any form.
       </p>
@@ -57,7 +57,7 @@ export default function Terms() {
 
       <h2>8. Limitation of Liability</h2>
       <p>
-        StudyNotes is provided "as is". We are not liable for any indirect, incidental, or
+        Notarium is provided "as is". We are not liable for any indirect, incidental, or
         consequential damages arising from your use of the service, including loss of data or academic
         outcomes.
       </p>
@@ -77,7 +77,7 @@ export default function Terms() {
       <h2>11. Contact</h2>
       <p>
         For questions about these Terms, write to us at{' '}
-        <a href="mailto:support@studynotes.in">support@studynotes.in</a>.
+        <a href="mailto:support@notarium.in">support@notarium.in</a>.
       </p>
     </PolicyLayout>
   );

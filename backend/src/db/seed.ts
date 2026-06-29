@@ -84,7 +84,7 @@ async function generatePlaceholderPdf(title: string, pages = 3): Promise<Buffer>
     const { width, height } = page.getSize();
 
     page.drawRectangle({ x: 0, y: height - 60, width, height: 60, color: rgb(0.48, 0.23, 0.93) });
-    page.drawText('StudyNotes', { x: 20, y: height - 40, size: 20, font: boldFont, color: rgb(1, 1, 1) });
+    page.drawText('Notarium', { x: 20, y: height - 40, size: 20, font: boldFont, color: rgb(1, 1, 1) });
     page.drawText(`Page ${p + 1} of ${pages}`, { x: width - 90, y: height - 40, size: 12, font, color: rgb(1, 1, 1) });
     page.drawText(title, { x: 40, y: height - 100, size: 18, font: boldFont, color: rgb(0.1, 0.1, 0.1), maxWidth: width - 80 });
 
@@ -103,7 +103,7 @@ async function generatePlaceholderPdf(title: string, pages = 3): Promise<Buffer>
     });
 
     page.drawLine({ start: { x: 40, y: 40 }, end: { x: width - 40, y: 40 }, thickness: 0.5, color: rgb(0.7, 0.7, 0.7) });
-    page.drawText('© StudyNotes — For personal use only', { x: 40, y: 20, size: 9, font, color: rgb(0.5, 0.5, 0.5) });
+    page.drawText('© Notarium — For personal use only', { x: 40, y: 20, size: 9, font, color: rgb(0.5, 0.5, 0.5) });
   }
 
   return Buffer.from(await doc.save());
@@ -146,19 +146,19 @@ async function seed() {
 
     const adminHash = await bcrypt.hash('admin123', 12);
     await client.query(
-      `INSERT INTO users (email, password_hash, name, role) VALUES ('admin@studynotes.in', $1, 'Admin', 'admin') ON CONFLICT (email) DO NOTHING`,
+      `INSERT INTO users (email, password_hash, name, role) VALUES ('admin@notarium.in', $1, 'Admin', 'admin') ON CONFLICT (email) DO NOTHING`,
       [adminHash]
     );
 
     const reviewHash = await bcrypt.hash('review123', 12);
     await client.query(
-      `INSERT INTO users (email, password_hash, name, role) VALUES ('reviewer@studynotes.in', $1, 'Reviewer', 'user') ON CONFLICT (email) DO NOTHING`,
+      `INSERT INTO users (email, password_hash, name, role) VALUES ('reviewer@notarium.in', $1, 'Reviewer', 'user') ON CONFLICT (email) DO NOTHING`,
       [reviewHash]
     );
 
     console.log('\nSeed complete!');
-    console.log('Admin:    admin@studynotes.in    / admin123');
-    console.log('Reviewer: reviewer@studynotes.in / review123');
+    console.log('Admin:    admin@notarium.in    / admin123');
+    console.log('Reviewer: reviewer@notarium.in / review123');
   } finally {
     client.release();
     await closePool();

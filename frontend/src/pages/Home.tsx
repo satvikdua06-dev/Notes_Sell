@@ -208,7 +208,7 @@ export default function Home() {
       {/* ── Features ────────────────────────────────────────────────────── */}
       <section className="py-20 px-4 border-t border-white/10">
         <div className="max-w-5xl mx-auto">
-          <h2 className="font-display font-bold text-3xl text-text mb-10">Why StudyNotes</h2>
+          <h2 className="font-display font-bold text-3xl text-text mb-10">Why Notarium</h2>
           <div ref={featuresRef} className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {FEATURES.map((f, i) => (
               <div key={i} className="feature-card bg-surface border border-white/10 rounded-xl p-6" style={{ opacity: 0 }}>
